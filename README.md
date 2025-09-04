@@ -1,2 +1,2 @@
-# website
-Personal website featuring achievements
+# Website
+Personal website featuring achievements. Isn't this README.md super interesting?
