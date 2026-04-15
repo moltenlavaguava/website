@@ -1,34 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pancakes - RipTyde</title>
+    <title>pancakes :D</title>
+    <link rel="icon" type="image/x-icon" href="../assets/pancake.png">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f4f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
-        .card { background: white; padding: 3rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); max-width: 400px; width: 90%; }
-        h1 { margin-top: 0; color: #333; }
-        p { color: #666; line-height: 1.5; }
-        .download-btn { background: #ff6b6b; color: white; padding: 15px 30px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 12px; display: inline-block; transition: transform 0.2s, background 0.2s; margin-top: 20px; }
-        .download-btn:hover { background: #fa5252; transform: translateY(-2px); }
-        .os-hint { font-size: 12px; color: #999; margin-top: 15px; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f4f4f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+
+        .card {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .download-btn {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 12px;
+            display: inline-block;
+            transition: transform 0.2s, background 0.2s;
+            margin-top: 20px;
+        }
+
+        .download-btn:hover {
+            background: #fa5252;
+            transform: translateY(-2px);
+        }
+
+        .os-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 15px;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="card">
-        <h1>Pancakes 🥞</h1>
-        <p>A fast, modern GUI app built with Rust and Iced.</p>
-        
+        <h1>pancakes <img src="../assets/pancake.png" alt="Icon Description" style="width:24px;height:24px;"></h1>
+        <p>A fast & easy to use Python installer</p>
+
         <a id="download-link" href="#" class="download-btn">Detecting OS...</a>
-        
+
         <div id="os-text" class="os-hint"></div>
     </div>
 
     <script>
         const repo = "moltenlavaguava/pancakes";
         const baseUrl = `https://github.com/${repo}/releases/latest/download/`;
-        
+
         const downloads = {
             windows: baseUrl + "pancakes.exe",
             linux: baseUrl + "pancakes-linux",
@@ -59,4 +108,5 @@
         }
     </script>
 </body>
+
 </html>
