@@ -16,6 +16,44 @@
             height: 100vh;
             margin: 0;
             text-align: center;
+            overflow: hidden;
+            /* Prevents scrollbars when pancakes drift off-screen */
+        }
+
+        /* Container for the floating background */
+        #bg-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            /* Ensures you can still click the button through the images */
+        }
+
+        /* The base class for the background images */
+        .floating-pancake {
+            position: absolute;
+            opacity: 0.4;
+            /* Transparency */
+            /* The color shifting animation */
+            animation: colorCycle 10s infinite linear;
+        }
+
+        /* Slowly rotates the RGB hue to change colors completely */
+        @keyframes colorCycle {
+            0% {
+                filter: hue-rotate(0deg) saturate(1.5);
+            }
+
+            50% {
+                filter: hue-rotate(180deg) saturate(2);
+            }
+
+            100% {
+                filter: hue-rotate(360deg) saturate(1.5);
+            }
         }
 
         .card {
@@ -25,6 +63,9 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
             max-width: 400px;
             width: 90%;
+            z-index: 1;
+            /* Keeps the card on top of the background */
+            position: relative;
         }
 
         h1 {
@@ -65,6 +106,9 @@
 
 <body>
 
+    <!-- Background Container -->
+    <div id="bg-container"></div>
+
     <div class="card">
         <h1>Pancakes <img src="../assets/pancake.png" alt="Icon Description" style="width:24px;height:24px;"></h1>
         <p>A fast & easy to use Python installer</p>
@@ -75,6 +119,56 @@
     </div>
 
     <script>
+        // --- FLOATING PANCAKE BACKGROUND LOGIC ---
+        function spawnPancakes() {
+            const container = document.getElementById('bg-container');
+            const numPancakes = 30; // Number of copies on screen
+
+            for (let i = 0; i < numPancakes; i++) {
+                const img = document.createElement('img');
+                img.src = '../assets/pancake.png';
+                img.className = 'floating-pancake';
+
+                // 1. Random Size (between 40px and 120px)
+                const size = Math.random() * 80 + 40;
+                img.style.width = `${size}px`;
+                img.style.height = `${size}px`;
+
+                // 2. Random Starting Position
+                img.style.left = `${Math.random() * 100}vw`;
+                img.style.top = `${Math.random() * 100}vh`;
+
+                // 3. Randomize the color cycle speed slightly so they aren't all matching
+                const colorSpeed = Math.random() * 10 + 5; // 5 to 15 seconds
+                img.style.animationDuration = `${colorSpeed}s`;
+                img.style.animationDelay = `-${Math.random() * 10}s`; // Desyncs the colors
+
+                // 4. Random Movement and Rotation
+                const xMove = (Math.random() - 0.5) * 600; // Drift amount X
+                const yMove = (Math.random() - 0.5) * 600; // Drift amount Y
+                const rotate = (Math.random() - 0.5) * 360; // Spin amount
+                const driftTime = Math.random() * 15000 + 15000; // 15 to 30 seconds to move
+
+                img.animate([
+                    { transform: `translate(0px, 0px) rotate(0deg)` },
+                    { transform: `translate(${xMove}px, ${yMove}px) rotate(${rotate}deg)` }
+                ], {
+                    duration: driftTime,
+                    iterations: Infinity,
+                    direction: 'alternate',
+                    easing: 'ease-in-out',
+                    delay: -(Math.random() * driftTime) // Start animation midway through
+                });
+
+                container.appendChild(img);
+            }
+        }
+
+        // Start the background effect
+        spawnPancakes();
+
+
+        // --- OS DETECTION & DOWNLOAD LOGIC ---
         const repo = "moltenlavaguava/pancakes";
         const baseUrl = `https://github.com/${repo}/releases/latest/download/`;
 
@@ -87,7 +181,11 @@
 
         const btn = document.getElementById('download-link');
         const hint = document.getElementById('os-text');
-        const platform = window.navigator.platform.toLowerCase();
+
+        // Added ?os=trick for easy testing (e.g. riptyde.net/pancakes?os=mac)
+        const urlParams = new URLSearchParams(window.location.search);
+        const manualOS = urlParams.get('os');
+        const platform = manualOS ? manualOS.toLowerCase() : window.navigator.platform.toLowerCase();
 
         if (platform.includes('win')) {
             btn.href = downloads.windows;
