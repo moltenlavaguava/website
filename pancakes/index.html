@@ -101,6 +101,24 @@
             color: #999;
             margin-top: 15px;
         }
+        .secondary-btn {
+            background: #6b8eff; /* A nice blue to contrast the red download button */
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 12px;
+            display: inline-block;
+            transition: transform 0.2s, background 0.2s;
+            margin-top: 10px; /* Spacing between buttons */
+            margin-left: 5px;  /* Spacing if they are side-by-side */
+        }
+
+        .secondary-btn:hover {
+            background: #5271fa;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 
@@ -114,6 +132,8 @@
         <p>A fast & easy to use Python installer</p>
 
         <a id="download-link" href="#" class="download-btn">Detecting OS...</a>
+
+        <a href="/pancakes/guides" class="secondary-btn">View Guides</a>
 
         <div id="os-text" class="os-hint"></div>
     </div>
