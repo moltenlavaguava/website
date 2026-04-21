@@ -45,21 +45,25 @@
         const contentDiv = document.getElementById('content');
         let globalManifest = [];
 
-        // --- 1. CONFIGURE MARKED.JS ---
+        // --- 1. CONFIGURE MARKED.JS (Updated for modern marked.js) ---
         const renderer = new marked.Renderer();
-        renderer.image = function(href, title, text) {
-            // THE FIX: Check if href exists AND is a real string of text
-            if (!href || typeof href !== 'string') {
-                return ''; 
-            }
+        
+        // In modern marked.js, this function receives an OBJECT { href, title, text }
+        renderer.image = function(imageObj) {
+            let { href, title, text } = imageObj;
+
+            // Safeguard
+            if (!href || typeof href !== 'string') return ''; 
             
             // Rewrite local image paths to GitHub Raw paths
             if (!href.startsWith('http')) {
                 const fileName = href.includes('.') ? href : `${href}.png`;
                 href = `${rawBaseUrl}/images/${encodeURIComponent(fileName)}`;
             }
-            return `<img src="${href}" alt="${text}" title="${title || ''}">`;
+            
+            return `<img src="${href}" alt="${text || ''}" title="${title || ''}">`;
         };
+        
         marked.use({ renderer });
 
         // --- 2. INITIALIZATION ---
