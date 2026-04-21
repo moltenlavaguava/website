@@ -45,23 +45,33 @@
         const contentDiv = document.getElementById('content');
         let globalManifest = [];
 
-        // --- 1. CONFIGURE MARKED.JS (Updated for modern marked.js) ---
         const renderer = new marked.Renderer();
         
-        // In modern marked.js, this function receives an OBJECT { href, title, text }
-        renderer.image = function(imageObj) {
-            let { href, title, text } = imageObj;
+        // This version handles BOTH old and new marked.js versions
+        renderer.image = function(hrefOrObj, title, text) {
+            let href, alt;
 
-            // Safeguard
-            if (!href || typeof href !== 'string') return ''; 
-            
-            // Rewrite local image paths to GitHub Raw paths
-            if (!href.startsWith('http')) {
-                const fileName = href.includes('.') ? href : `${href}.png`;
-                href = `${rawBaseUrl}/images/${encodeURIComponent(fileName)}`;
+            // Check if we got an object (modern) or strings (classic)
+            if (typeof hrefOrObj === 'object' && hrefOrObj !== null) {
+                href = hrefOrObj.href;
+                alt = hrefOrObj.text || '';
+            } else {
+                href = hrefOrObj;
+                alt = text || '';
             }
+
+            if (!href) return ''; 
             
-            return `<img src="${href}" alt="${text || ''}" title="${title || ''}">`;
+            if (!href.startsWith('http')) {
+                // Force lowercase and add .png if extension missing
+                const fileName = href.includes('.') ? href : `${href}.png`;
+                href = `${rawBaseUrl}/images/${fileName}`;
+            }
+
+            // DEBUG: This prints the generated image link to your browser console (F12)
+            console.log("Generated Image URL:", href);
+
+            return `<img src="${href}" alt="${alt}" loading="lazy">`;
         };
         
         marked.use({ renderer });
@@ -153,7 +163,7 @@
                 const markdownText = await response.text();
                 
                 // Parse the Markdown (The image renderer safeguard is active here)
-                const html = marked.parse(markdownText);
+                const html = marked.parse(markdownText, { renderer: renderer });
                 
                 contentDiv.innerHTML = `
                     <a href="/pancakes/guides" class="back-btn" onclick="navigate(event, '/pancakes/guides')">← Back to Guides</a>
