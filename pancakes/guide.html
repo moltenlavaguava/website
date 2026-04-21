@@ -8,30 +8,79 @@
     <!-- Load marked.js to parse Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f4f9; color: #333; line-height: 1.6; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 800px; width: 100%; margin-top: 40px; min-height: 50vh; position: relative; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: #f4f4f9; 
+            color: #333; 
+            line-height: 1.6; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+            min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scroll from drifting pancakes */
+        }
+
+        /* --- BACKGROUND RAINBOW PANCAKES --- */
+        #bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .floating-pancake {
+            position: absolute;
+            opacity: 0.3;
+            animation: colorCycle 10s infinite linear;
+        }
+
+        @keyframes colorCycle {
+            0% { filter: hue-rotate(0deg) saturate(1.5); }
+            50% { filter: hue-rotate(180deg) saturate(2); }
+            100% { filter: hue-rotate(360deg) saturate(1.5); }
+        }
+
+        .container { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            max-width: 800px; 
+            width: 100%; 
+            margin-top: 40px; 
+            margin-bottom: 40px;
+            min-height: 50vh; 
+            position: relative; 
+            z-index: 1; /* Keep content above background */
+        }
         
         /* Markdown Styling */
         h1, h2, h3 { color: #111; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 1.5em; }
         pre { background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 0.9rem; }
         code { background: #f0f0f0; padding: 2px 5px; border-radius: 4px; font-family: monospace; }
         pre code { background: transparent; padding: 0; }
-        img {
-            display: block;
-            margin: 30px auto;
-            max-height: 300px;
-            max-width: 100%;  
-            width: auto;      
-            height: auto;     
-            
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        
+        /* Guide Content Images */
+        .markdown-body img { 
+            display: block; 
+            margin: 30px auto; 
+            max-height: 300px; 
+            max-width: 100%; 
+            width: auto; 
+            height: auto; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
         }
+
         a { color: #ff6b6b; text-decoration: none; }
         a:hover { text-decoration: underline; }
         p { margin: 1em 0; }
         
-        /* Guide Hub Styling */
+        /* Hub Styling */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
         .guide-card { display: block; border: 1px solid #eaeaea; padding: 20px; border-radius: 10px; transition: transform 0.2s, box-shadow 0.2s; color: inherit; text-decoration: none; cursor: pointer; }
         .guide-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.08); text-decoration: none; }
@@ -42,162 +91,152 @@
         
         .loading, .error { text-align: center; font-size: 1.2rem; color: #666; margin-top: 50px; }
         .error { color: #fa5252; }
+
+        /* Custom Icon inline fix */
+        .inline-pancake {
+            width: 28px;
+            height: 28px;
+            vertical-align: middle;
+            margin-bottom: 4px;
+        }
     </style>
 </head>
 <body>
 
+    <div id="bg-container"></div>
+
     <div class="container" id="content">
-        <div class="loading">Loading guides... 🥞</div>
+        <div class="loading">Loading guides... <img src="../../assets/pancake.png" class="inline-pancake"></div>
     </div>
 
     <script>
         const rawBaseUrl = "https://raw.githubusercontent.com/moltenlavaguava/pancakes/main";
         const contentDiv = document.getElementById('content');
+        const pancakeIcon = '<img src="../../assets/pancake.png" class="inline-pancake">';
         let globalManifest = [];
 
+        // --- BACKGROUND PANCAKE GENERATOR ---
+        function spawnPancakes() {
+            const container = document.getElementById('bg-container');
+            const numPancakes = 30; // Increased to 30
+
+            for (let i = 0; i < numPancakes; i++) {
+                const img = document.createElement('img');
+                img.src = '../../assets/pancake.png';
+                img.className = 'floating-pancake';
+                const size = Math.random() * 80 + 40;
+                img.style.width = `${size}px`;
+                img.style.left = `${Math.random() * 100}vw`;
+                img.style.top = `${Math.random() * 100}vh`;
+                const colorSpeed = Math.random() * 10 + 5;
+                img.style.animationDuration = `${colorSpeed}s`;
+                img.style.animationDelay = `-${Math.random() * 10}s`;
+                const driftTime = Math.random() * 15000 + 15000;
+                img.animate([
+                    { transform: `translate(0px, 0px) rotate(0deg)` },
+                    { transform: `translate(${(Math.random()-0.5)*600}px, ${(Math.random()-0.5)*600}px) rotate(${(Math.random()-0.5)*360}deg)` }
+                ], {
+                    duration: driftTime,
+                    iterations: Infinity,
+                    direction: 'alternate',
+                    easing: 'ease-in-out',
+                    delay: -(Math.random() * driftTime)
+                });
+                container.appendChild(img);
+            }
+        }
+        spawnPancakes();
+
+        // --- MARKED.JS CONFIG ---
         const renderer = new marked.Renderer();
-        
-        // This version handles BOTH old and new marked.js versions
-        renderer.image = function(hrefOrObj, title, text) {
-            let href, alt;
-
-            // Check if we got an object (modern) or strings (classic)
-            if (typeof hrefOrObj === 'object' && hrefOrObj !== null) {
-                href = hrefOrObj.href;
-                alt = hrefOrObj.text || '';
-            } else {
-                href = hrefOrObj;
-                alt = text || '';
-            }
-
+        renderer.image = function(imageObj) {
+            let href = typeof imageObj === 'object' ? imageObj.href : imageObj;
+            let text = typeof imageObj === 'object' ? imageObj.text : '';
             if (!href) return ''; 
-            
             if (!href.startsWith('http')) {
-                // Force lowercase and add .png if extension missing
                 const fileName = href.includes('.') ? href : `${href}.png`;
-                href = `${rawBaseUrl}/images/${fileName}`;
+                href = `${rawBaseUrl}/images/${encodeURIComponent(fileName)}`;
             }
-
-            // DEBUG: This prints the generated image link to your browser console (F12)
-            console.log("Generated Image URL:", href);
-
-            return `<img src="${href}" alt="${alt}" loading="lazy">`;
+            return `<img src="${href}" alt="${text || ''}">`;
         };
-        
         marked.use({ renderer });
 
-        // --- 2. INITIALIZATION ---
+        // --- ROUTING & FETCHING ---
         async function init() {
             try {
-                // Fetch manifest with cache buster
                 const response = await fetch(`${rawBaseUrl}/guides/manifest.json?t=${new Date().getTime()}`);
                 if (response.ok) globalManifest = await response.json();
-            } catch (error) {
-                console.error("Failed to load manifest.json", error);
-            }
+            } catch (error) { console.error("Manifest load error", error); }
             route();
         }
 
-        // --- 3. ROUTER ---
         function route() {
             const pathParts = window.location.pathname.split('/guides/');
             let slug = pathParts.length > 1 ? decodeURIComponent(pathParts[1].replace(/\/$/, '')) : "";
-
-            if (!slug || slug === "") {
-                renderHub();
-            } else {
-                renderArticle(slug);
-            }
+            if (!slug || slug === "") renderHub(); else renderArticle(slug);
         }
 
-        // --- 4. SPA NAVIGATION ---
         function navigate(event, path, slug = "") {
             if (event) event.preventDefault();
             window.history.pushState({}, '', path);
-            
-            if (slug === "") renderHub();
-            else renderArticle(slug);
+            if (slug === "") renderHub(); else renderArticle(slug);
         }
 
-        window.addEventListener('popstate', () => {
-            route();
-        });
+        window.addEventListener('popstate', route);
 
-        // --- 5. RENDER HUB (MENU) ---
         function renderHub() {
             document.title = "Pancakes Guides";
-            
             if (globalManifest.length === 0) {
-                contentDiv.innerHTML = `<div class="error">Could not load manifest.json. Check the GitHub repo!</div>`;
+                contentDiv.innerHTML = `<div class="error">Could not load manifest.json</div>`;
                 return;
             }
+            globalManifest.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
 
-            globalManifest.sort((a, b) => (b.pinned === true ? 1 : 0) - (a.pinned === true ? 1 : 0));
-
-            let html = `<h1>Pancakes Guides 🥞</h1><p>Select a guide below to get started:</p><div class="grid">`;
-            
+            let html = `<h1>Pancakes Guides ${pancakeIcon}</h1><p>Select a guide below to get started:</p><div class="grid">`;
             globalManifest.forEach(item => {
                 const tagsHtml = item.tags ? item.tags.map(tag => `<span class="tag">${tag}</span>`).join('') : '';
                 const pinHtml = item.pinned ? `<span class="pin">📌</span>` : '';
                 const safeSlug = encodeURIComponent(item.slug);
                 const path = `/pancakes/guides/${safeSlug}`;
-
                 html += `
                     <a href="${path}" class="guide-card" onclick="navigate(event, '${path}', '${item.slug}')">
                         ${pinHtml}
                         <h3>${item.name}</h3>
                         <div>${tagsHtml}</div>
-                    </a>
-                `;
+                    </a>`;
             });
-
             html += `</div>`;
             contentDiv.innerHTML = html;
             window.scrollTo(0, 0);
         }
 
-        // --- 6. RENDER ARTICLE ---
         async function renderArticle(slug) {
-            contentDiv.innerHTML = `<div class="loading">Loading "${slug}"... 🥞</div>`;
-            
+            contentDiv.innerHTML = `<div class="loading">Loading... ${pancakeIcon}</div>`;
             const guideInfo = globalManifest.find(g => g.slug === slug);
             document.title = guideInfo ? `${guideInfo.name} - Pancakes` : `${slug} - Pancakes`;
 
             try {
-                // Fetch Markdown with Cache Buster
                 const fetchUrl = `${rawBaseUrl}/guides/${encodeURIComponent(slug)}.md?t=${new Date().getTime()}`;
                 const response = await fetch(fetchUrl);
-                
                 if (!response.ok) throw new Error(`GitHub returned ${response.status}`);
-
                 const markdownText = await response.text();
-                
-                // Parse the Markdown (The image renderer safeguard is active here)
-                const html = marked.parse(markdownText, { renderer: renderer });
-                
+                const html = marked.parse(markdownText);
                 contentDiv.innerHTML = `
                     <a href="/pancakes/guides" class="back-btn" onclick="navigate(event, '/pancakes/guides')">← Back to Guides</a>
                     <div class="markdown-body">${html}</div>
                 `;
-                
                 window.scrollTo(0, 0);
-
             } catch (error) {
-                // LOG THE REAL ERROR to the Console for debugging
-                console.error("PANCAKES RENDERING ERROR:", error);
-                
+                console.error("RENDER ERROR:", error);
                 contentDiv.innerHTML = `
                     <div class="error">
-                        <h2>Oops! 🥞</h2>
+                        <h2>Oops! ${pancakeIcon}</h2>
                         <p>We ran into an issue loading: <b>${slug}</b></p>
-                        <p style="font-size: 0.8rem;">Technical error: ${error.message}</p>
                         <a href="/pancakes/guides" class="back-btn" onclick="navigate(event, '/pancakes/guides')">← Back to Guides</a>
-                    </div>
-                `;
+                    </div>`;
             }
         }
 
-        // GO!
         init();
     </script>
 </body>
