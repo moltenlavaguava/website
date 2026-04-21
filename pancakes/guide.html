@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pancakes Guides</title>
+    <link rel="icon" type="image/x-icon" href="../../assets/pancake.png">
+    <!-- Load marked.js to parse Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f4f4f9; color: #333; line-height: 1.6; margin: 0; padding: 20px;
+            display: flex; justify-content: center;
+        }
+        .container {
+            background: white; padding: 40px; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-width: 800px; width: 100%; margin-top: 40px; min-height: 50vh;
+        }
+        
+        /* Markdown Styling */
+        h1, h2, h3 { color: #111; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        pre { background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 8px; overflow-x: auto; }
+        code { background: #eee; padding: 2px 5px; border-radius: 4px; font-family: monospace; }
+        pre code { background: transparent; padding: 0; }
+        img { max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin: 15px 0; }
+        a { color: #ff6b6b; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        
+        /* Guide Hub Styling */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+        .guide-card { 
+            display: block; border: 1px solid #eaeaea; padding: 20px; border-radius: 10px; 
+            transition: transform 0.2s, box-shadow 0.2s; color: inherit; text-decoration: none;
+        }
+        .guide-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.08); text-decoration: none; }
+        .guide-card h3 { border: none; margin: 0 0 10px 0; color: #ff6b6b; font-size: 1.2rem; }
+        .tag { background: #eee; font-size: 0.8rem; padding: 3px 8px; border-radius: 12px; margin-right: 5px; color: #555; display: inline-block; }
+        .pin { float: right; font-size: 1.2rem; }
+        .back-btn { display: inline-block; margin-bottom: 20px; font-weight: bold; }
+        
+        .loading, .error { text-align: center; font-size: 1.2rem; color: #666; margin-top: 50px; }
+        .error { color: #fa5252; }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="content">
+        <div class="loading">Loading guides... 🥞</div>
+    </div>
+
+    <script>
+        // Constants for your GitHub Repo
+        const rawBaseUrl = "https://raw.githubusercontent.com/moltenlavaguava/pancakes/main";
+        const contentDiv = document.getElementById('content');
+
+        // Configure Marked.js to fix Image URLs automatically
+        const renderer = new marked.Renderer();
+        renderer.image = function(href, title, text) {
+            if (!href.startsWith('http')) {
+                const fileName = href.includes('.') ? href : `${href}.png`;
+                // Because spaces in image URLs break things, we encode the filename
+                href = `${rawBaseUrl}/images/${encodeURIComponent(fileName)}`;
+            }
+            return `<img src="${href}" alt="${text}" title="${title || ''}">`;
+        };
+        marked.use({ renderer });
+
+        // Main Router Function
+        async function init() {
+            // Extract the slug from the URL (e.g. /pancakes/guides/Mac%20Guide -> Mac Guide)
+            const pathParts = window.location.pathname.split('/guides/');
+            let slug = pathParts.length > 1 ? decodeURIComponent(pathParts[1].replace(/\/$/, '')) : "";
+
+            // Fetch the Manifest
+            let manifest = [];
+            try {
+                const response = await fetch(`${rawBaseUrl}/guides/manifest.json`);
+                if (response.ok) manifest = await response.json();
+            } catch (error) {
+                console.error("Failed to load manifest.json", error);
+            }
+
+            // Route to Hub or Article
+            if (!slug || slug === "") {
+                renderHub(manifest);
+            } else {
+                renderArticle(slug, manifest);
+            }
+        }
+
+        // Render the Main Menu (Manifest)
+        function renderHub(manifest) {
+            document.title = "Pancakes Guides";
+            
+            if (manifest.length === 0) {
+                contentDiv.innerHTML = `<div class="error">Could not load manifest.json</div>`;
+                return;
+            }
+
+            // Sort so Pinned items are at the top
+            manifest.sort((a, b) => b.pinned - a.pinned);
+
+            let html = `<h1>Pancakes Guides 🥞</h1><p>Select a guide below to get started:</p><div class="grid">`;
+            
+            manifest.forEach(item => {
+                const tagsHtml = item.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+                const pinHtml = item.pinned ? `<span class="pin">📌</span>` : '';
+                // Ensure spaces in slugs (like "Mac Guide") become valid URL paths
+                const safeSlug = encodeURIComponent(item.slug);
+
+                html += `
+                    <a href="/pancakes/guides/${safeSlug}" class="guide-card">
+                        ${pinHtml}
+                        <h3>${item.name}</h3>
+                        <div>${tagsHtml}</div>
+                    </a>
+                `;
+            });
+
+            html += `</div>`;
+            contentDiv.innerHTML = html;
+        }
+
+        // Render a specific Markdown Guide
+        async function renderArticle(slug, manifest) {
+            // Try to find the guide in the manifest to set the window title nicely
+            const guideInfo = manifest.find(g => g.slug === slug);
+            if (guideInfo) {
+                document.title = `${guideInfo.name} - Pancakes`;
+            } else {
+                document.title = `${slug} - Pancakes`;
+            }
+
+            try {
+                // Fetch the specific markdown file
+                // encodeURIComponent is critical here so "Mac Guide.md" becomes "Mac%20Guide.md"
+                const response = await fetch(`${rawBaseUrl}/guides/${encodeURIComponent(slug)}.md`);
+                
+                if (!response.ok) throw new Error("Guide not found");
+
+                const markdownText = await response.text();
+                const html = marked.parse(markdownText);
+                
+                contentDiv.innerHTML = `
+                    <a href="/pancakes/guides" class="back-btn">← Back to Guides</a>
+                    ${html}
+                `;
+
+            } catch (error) {
+                contentDiv.innerHTML = `
+                    <div class="error">
+                        <h2>Oops! 🥞</h2>
+                        <p>We couldn't find the guide: <b>${slug}</b></p>
+                        <a href="/pancakes/guides" class="back-btn">← Back to Guides</a>
+                    </div>
+                `;
+            }
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
