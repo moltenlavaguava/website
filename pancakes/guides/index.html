@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pancakes Guide</title>
+    <link rel="icon" type="image/x-icon" href="../../assets/pancake.png">
+    <!-- Load marked.js to parse Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f4f4f9;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-width: 800px;
+            width: 100%;
+            margin-top: 40px;
+        }
+        /* Markdown Styling */
+        h1, h2, h3 { color: #111; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        pre { background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 8px; overflow-x: auto; }
+        code { background: #eee; padding: 2px 5px; border-radius: 4px; font-family: monospace; }
+        pre code { background: transparent; padding: 0; }
+        img { max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin: 15px 0; }
+        a { color: #ff6b6b; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        
+        .loading, .error { text-align: center; font-size: 1.2rem; color: #666; }
+        .error { color: #fa5252; }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="content">
+        <div class="loading">Loading guide... 🥞</div>
+    </div>
+
+    <script>
+        // 1. Get the guide slug from the URL
+        // Example: riptyde.net/pancakes/guides/setup -> "setup"
+        const pathParts = window.location.pathname.split('/').filter(p => p);
+        let slug = pathParts[pathParts.length - 1];
+
+        // If someone just goes to /guides/, default to an "index" or "readme" guide
+        if (slug === "guides") {
+            slug = "index"; 
+        }
+
+        const rawBaseUrl = "https://raw.githubusercontent.com/moltenlavaguava/pancakes/main";
+        const markdownUrl = `${rawBaseUrl}/guides/${slug}.md`;
+        
+        const contentDiv = document.getElementById('content');
+
+        // 2. Configure Markdown Parser to fix Image URLs
+        const renderer = new marked.Renderer();
+        renderer.image = function(href, title, text) {
+            // Check if the image is already a full URL
+            if (!href.startsWith('http')) {
+                // If the markdown lacks an extension, we append .png automatically
+                // Example: href "my_image" becomes "my_image.png"
+                const fileName = href.includes('.') ? href : `${href}.png`;
+                href = `${rawBaseUrl}/images/${fileName}`;
+            }
+            return `<img src="${href}" alt="${text}" title="${title || ''}">`;
+        };
+
+        marked.use({ renderer });
+
+        // 3. Fetch and Render the Markdown
+        async function loadGuide() {
+            try {
+                const response = await fetch(markdownUrl);
+                
+                if (!response.ok) {
+                    throw new Error("Guide not found");
+                }
+
+                const markdownText = await response.text();
+                
+                // Parse markdown to HTML
+                const html = marked.parse(markdownText);
+                contentDiv.innerHTML = html;
+                
+                // Optional: Update the page title to match the slug
+                document.title = `${slug.replace(/-/g, ' ')} - Pancakes Guide`;
+
+            } catch (error) {
+                contentDiv.innerHTML = `
+                    <div class="error">
+                        <h2>Oops! 🥞</h2>
+                        <p>We couldn't find the guide: <b>${slug}</b></p>
+                        <a href="/pancakes">Return to Downloads</a>
+                    </div>
+                `;
+            }
+        }
+
+        loadGuide();
+    </script>
+</body>
+</html>
