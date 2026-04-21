@@ -17,10 +17,8 @@
             margin: 0;
             text-align: center;
             overflow: hidden;
-            /* Prevents scrollbars when pancakes drift off-screen */
         }
 
-        /* Container for the floating background */
         #bg-container {
             position: absolute;
             top: 0;
@@ -29,169 +27,157 @@
             height: 100vh;
             z-index: 0;
             pointer-events: none;
-            /* Ensures you can still click the button through the images */
         }
 
-        /* The base class for the background images */
         .floating-pancake {
             position: absolute;
-            opacity: 0.4;
-            /* Transparency */
-            /* The color shifting animation */
+            opacity: 0.3;
             animation: colorCycle 10s infinite linear;
         }
 
-        /* Slowly rotates the RGB hue to change colors completely */
         @keyframes colorCycle {
-            0% {
-                filter: hue-rotate(0deg) saturate(1.5);
-            }
-
-            50% {
-                filter: hue-rotate(180deg) saturate(2);
-            }
-
-            100% {
-                filter: hue-rotate(360deg) saturate(1.5);
-            }
+            0% { filter: hue-rotate(0deg) saturate(1.5); }
+            50% { filter: hue-rotate(180deg) saturate(2); }
+            100% { filter: hue-rotate(360deg) saturate(1.5); }
         }
 
         .card {
             background: white;
             padding: 3rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-            max-width: 400px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+            max-width: 480px; /* Slightly wider to fit horizontal buttons */
             width: 90%;
             z-index: 1;
-            /* Keeps the card on top of the background */
             position: relative;
         }
 
         h1 {
             margin-top: 0;
             color: #333;
+            font-size: 2.2rem;
         }
 
         p {
             color: #666;
             line-height: 1.5;
+            margin-bottom: 30px;
+        }
+
+        /* --- BUTTON LAYOUT --- */
+        .button-group {
+            display: flex;
+            flex-direction: row; /* Side by side */
+            gap: 12px;
+            width: 100%;
+            margin-top: 20px;
         }
 
         .download-btn {
+            flex: 2.5; /* Takes up much more space (~70%) */
             background: #ff6b6b;
             color: white;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
+            border: 2px solid #ff6b6b;
+        }
+
+        .secondary-btn {
+            flex: 1; /* Takes up less space (~30%) */
+            background: transparent;
+            color: #ff6b6b;
+            border: 2px solid #ff6b6b;
+            white-space: nowrap; /* Prevents "Guides" from breaking into two lines */
+        }
+
+        .download-btn, .secondary-btn {
+            padding: 16px 10px;
+            font-size: 17px;
+            font-weight: 700;
             text-decoration: none;
-            border-radius: 12px;
-            display: inline-block;
-            transition: transform 0.2s, background 0.2s;
-            margin-top: 20px;
+            border-radius: 14px;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .download-btn:hover {
             background: #fa5252;
+            border-color: #fa5252;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(250, 82, 82, 0.25);
+        }
+
+        .secondary-btn:hover {
+            background: rgba(255, 107, 107, 0.05);
             transform: translateY(-2px);
         }
 
         .os-hint {
-            font-size: 12px;
-            color: #999;
-            margin-top: 15px;
-        }
-        .secondary-btn {
-            background: #6b8eff; /* A nice blue to contrast the red download button */
-            color: white;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            text-decoration: none;
-            border-radius: 12px;
-            display: inline-block;
-            transition: transform 0.2s, background 0.2s;
-            margin-top: 10px; /* Spacing between buttons */
-            margin-left: 5px;  /* Spacing if they are side-by-side */
+            font-size: 13px;
+            color: #aaa;
+            margin-top: 25px;
+            font-weight: 500;
         }
 
-        .secondary-btn:hover {
-            background: #5271fa;
-            transform: translateY(-2px);
+        /* Responsive: Stack buttons on small screens */
+        @media (max-width: 400px) {
+            .button-group {
+                flex-direction: column;
+            }
+            .download-btn, .secondary-btn {
+                width: 100%;
+                flex: none;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- Background Container -->
     <div id="bg-container"></div>
 
     <div class="card">
-        <h1>Pancakes <img src="../assets/pancake.png" alt="Icon Description" style="width:24px;height:24px;"></h1>
+        <h1>Pancakes <img src="../assets/pancake.png" alt="Icon" style="width:32px;height:32px;vertical-align:middle;margin-bottom:4px;"></h1>
         <p>A fast & easy to use Python installer</p>
 
-        <a id="download-link" href="#" class="download-btn">Detecting OS...</a>
-
-        <a href="/pancakes/guides" class="secondary-btn">View Guides</a>
+        <div class="button-group">
+            <a id="download-link" href="#" class="download-btn">Detecting OS...</a>
+            <a href="/pancakes/guides" class="secondary-btn">Guides</a>
+        </div>
 
         <div id="os-text" class="os-hint"></div>
     </div>
 
     <script>
-        // --- FLOATING PANCAKE BACKGROUND LOGIC ---
+        // --- BACKGROUND PANCAKES ---
         function spawnPancakes() {
             const container = document.getElementById('bg-container');
-            const numPancakes = 30; // Number of copies on screen
-
+            const numPancakes = 15;
             for (let i = 0; i < numPancakes; i++) {
                 const img = document.createElement('img');
                 img.src = '../assets/pancake.png';
                 img.className = 'floating-pancake';
-
-                // 1. Random Size (between 40px and 120px)
                 const size = Math.random() * 80 + 40;
                 img.style.width = `${size}px`;
-                img.style.height = `${size}px`;
-
-                // 2. Random Starting Position
                 img.style.left = `${Math.random() * 100}vw`;
                 img.style.top = `${Math.random() * 100}vh`;
-
-                // 3. Randomize the color cycle speed slightly so they aren't all matching
-                const colorSpeed = Math.random() * 10 + 5; // 5 to 15 seconds
+                const colorSpeed = Math.random() * 10 + 5;
                 img.style.animationDuration = `${colorSpeed}s`;
-                img.style.animationDelay = `-${Math.random() * 10}s`; // Desyncs the colors
-
-                // 4. Random Movement and Rotation
-                const xMove = (Math.random() - 0.5) * 600; // Drift amount X
-                const yMove = (Math.random() - 0.5) * 600; // Drift amount Y
-                const rotate = (Math.random() - 0.5) * 360; // Spin amount
-                const driftTime = Math.random() * 15000 + 15000; // 15 to 30 seconds to move
-
+                img.style.animationDelay = `-${Math.random() * 10}s`;
+                const driftTime = Math.random() * 15000 + 15000;
                 img.animate([
-                    { transform: `translate(0px, 0px) rotate(0deg)` },
-                    { transform: `translate(${xMove}px, ${yMove}px) rotate(${rotate}deg)` }
-                ], {
-                    duration: driftTime,
-                    iterations: Infinity,
-                    direction: 'alternate',
-                    easing: 'ease-in-out',
-                    delay: -(Math.random() * driftTime) // Start animation midway through
-                });
-
+                    { transform: `translate(0, 0) rotate(0deg)` },
+                    { transform: `translate(${(Math.random()-0.5)*500}px, ${(Math.random()-0.5)*500}px) rotate(${(Math.random()-0.5)*360}deg)` }
+                ], { duration: driftTime, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out', delay: -(Math.random()*driftTime) });
                 container.appendChild(img);
             }
         }
-
-        // Start the background effect
         spawnPancakes();
 
-
-        // --- OS DETECTION & DOWNLOAD LOGIC ---
+        // --- OS DETECTION ---
         const repo = "moltenlavaguava/pancakes";
         const baseUrl = `https://github.com/${repo}/releases/latest/download/`;
-
         const downloads = {
             windows: baseUrl + "pancakes.exe",
             linux: baseUrl + "pancakes-linux",
@@ -201,8 +187,6 @@
 
         const btn = document.getElementById('download-link');
         const hint = document.getElementById('os-text');
-
-        // Added ?os=trick for easy testing (e.g. riptyde.net/pancakes?os=mac)
         const urlParams = new URLSearchParams(window.location.search);
         const manualOS = urlParams.get('os');
         const platform = manualOS ? manualOS.toLowerCase() : window.navigator.platform.toLowerCase();
@@ -222,7 +206,7 @@
         } else {
             btn.href = downloads.fallback;
             btn.innerText = "View on GitHub";
-            hint.innerText = "Mobile not supported - select platform on GitHub";
+            hint.innerText = "Mobile not supported - check GitHub for files";
         }
     </script>
 </body>
